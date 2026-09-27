@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAXED OUT. · Social Media von Maxima Jeitler</title>
+<meta name="description" content="Content Creation, Social Media Management und Strategie in Wien, Niederösterreich und der Steiermark. Für Unternehmen, die nicht wie alle anderen klingen wollen.">
+<meta name="theme-color" content="#2F3227">
+<meta property="og:title" content="MAXED OUT. · Social Media von Maxima Jeitler">
+<meta property="og:description" content="Content, der deinem Unternehmen ein Gesicht gibt. Und der im Kopf bleibt.">
+<meta property="og:image" content="https://maximajeitler.github.io/maxima-portrait-web.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+<!-- Eigener Cursor (nur mit Maus sichtbar) -->
+<div class="cursor" aria-hidden="true"><span class="cursor__dot"></span><span class="cursor__ring"></span></div>
+
+<header class="nav" data-nav>
+  <div class="container nav__inner">
+    <a href="#top" class="wordmark" aria-label="MAXED OUT. Startseite">
+      <img class="logo logo--nav" src="maxed-out-full.svg" alt="MAXED OUT.">
+    </a>
+
+    <nav class="nav__links" aria-label="Hauptnavigation">
+      <a class="nav__link" href="#ueber-mich">Über mich</a>
+      <a class="nav__link" href="#angebot">Angebot</a>
+      <a class="nav__link" href="#ablauf">Ablauf</a>
+    </nav>
+
+    <a class="btn btn--primary nav__cta" href="#kontakt" data-magnetic>Schreib mir</a>
+
+    <button class="nav__burger" aria-label="Menü öffnen" aria-expanded="false" aria-controls="mobile-drawer">
+      <span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<div class="drawer" data-drawer id="mobile-drawer" hidden>
+  <nav class="drawer__links" aria-label="Mobile Navigation">
+    <a href="#ueber-mich">Über mich</a>
+    <a href="#angebot">Angebot</a>
+    <a href="#ablauf">Ablauf</a>
+    <a href="#kontakt">Kontakt</a>
+  </nav>
+  <a class="drawer__insta" href="https://instagram.com/maxedoutstudio" target="_blank" rel="noopener">@maxedoutstudio</a>
+</div>
+
+<main id="main">
+
+  <!-- HERO: Tacho, dessen Nadel dem Zeiger folgt -->
+  <section class="hero" id="top">
+    <div class="glow glow--hero" aria-hidden="true"></div>
+    <div class="hero__glow" aria-hidden="true"></div>
+    <div class="container hero__grid">
+      <div class="hero__gauge" data-hero-gauge aria-hidden="true">
+        <div class="hero__readout"><span data-readout>0</span><span class="hero__unit">%</span></div>
+      </div>
+      <div class="hero__content">
+        <p class="kicker" data-intro>Maxima Jeitler · Social Media &amp; Content</p>
+        <h1 class="display-1 hero__title" data-intro data-split>Hol das Maximum aus deinem Unternehmen raus<span class="dot-accent">.</span></h1>
+        <p class="body-lg hero__sub" data-intro>Mit Content, der dir ein Gesicht gibt. Und der im Kopf bleibt.</p>
+        <div class="hero__actions" data-intro>
+          <a class="btn btn--primary" href="#kontakt" data-magnetic>Projekt anfragen</a>
+          <a class="btn btn--ghost" href="#angebot">Was ich mache</a>
+        </div>
+      </div>
+    </div>
+    <p class="hero__hint" data-intro aria-hidden="true"><span class="hint-mouse">Beweg die Maus. Die Nadel folgt dir.</span><span class="hint-touch">Scroll los.</span></p>
+  </section>
+
+  <!-- Laufband mit Haltung -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track" data-marquee>
+      <span>Keine 08/15-Postings</span><i></i><span>Fotos</span><i></i><span>Reels</span><i></i><span>Stories</span><i></i><span>Keine Trends, nur weil sie laufen</span><i></i><span>Strategie</span><i></i><span>Community</span><i></i>
+    </div>
+  </div>
+
+  <!-- ÜBER MICH -->
+  <section class="section section--black about" id="ueber-mich">
+    <div class="glow glow--about" aria-hidden="true"></div>
+    <div class="container about__grid">
+      <figure class="about__portrait" data-reveal data-tilt>
+        <picture>
+          <source srcset="maxima-portrait.webp" type="image/webp">
+          <img src="maxima-portrait-web.jpg" alt="Maxima Jeitler, Gründerin von MAXED OUT." width="1000" height="1500" loading="lazy">
+        </picture>
+        <figcaption class="about__tag">Wien · Niederösterreich · Steiermark</figcaption>
+      </figure>
+
+      <div class="about__text">
+        <h2 class="display-2" data-reveal>Hallo! Ich bin Maxima<span class="dot-accent">.</span></h2>
+        <p class="body-lg" data-reveal>Ich mache Social Media für Unternehmen, die nicht wie alle anderen klingen wollen.</p>
+        <p class="about__quote" data-reveal>Denn seien wir uns ehrlich: <span class="accent-text">Dein Social-Media-Account ist heutzutage deine Visitenkarte.</span></p>
+        <p data-reveal>Oft ist er das Erste, was jemand von dir sieht. Deshalb finde ich zuerst heraus, wie dein Unternehmen eigentlich klingt, und baue alles andere darauf auf.</p>
+        <p data-reveal>Ich mag keine 08/15-Postings und keine Trends, nur weil sie gerade laufen. Ich bin selbst jeden Tag auf Instagram und TikTok unterwegs und merke ziemlich schnell, was hängen bleibt und was man wegscrollt.</p>
+        <p data-reveal>Ich arbeite selbstständig und flexibel. Ob ein einzelnes Shooting oder dein ganzer Account: Wir machen genau so viel, wie du brauchst.</p>
+        <a class="about__insta" href="https://instagram.com/maxedoutstudio" target="_blank" rel="noopener" data-reveal>Was ich gerade mache, siehst du auf Instagram <span>@maxedoutstudio</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANGEBOT: Tacho als Regler -->
+  <section class="section section--olive offer" id="angebot">
+    <div class="glow glow--offer" aria-hidden="true"></div>
+    <div class="container">
+      <div class="offer__head">
+        <h2 class="display-2" data-reveal>Wie viel darf's sein<span class="dot-accent">?</span></h2>
+        <p class="body-lg offer__intro" data-reveal>Zieh die Nadel oder tipp auf eine Stufe. Von einem einzelnen Projekt bis dahin, dass ich deinen Account komplett übernehme.</p>
+      </div>
+
+      <div class="offer__grid">
+        <div class="dial" data-dial data-reveal>
+          <div class="dial__gauge" data-dial-gauge></div>
+          <div class="dial__stops" role="tablist" aria-label="Angebot wählen">
+            <button role="tab" class="dial__stop" data-stop="0" aria-selected="true" aria-controls="offer-panel">Einmal</button>
+            <button role="tab" class="dial__stop" data-stop="1" aria-selected="false" aria-controls="offer-panel">Content</button>
+            <button role="tab" class="dial__stop" data-stop="2" aria-selected="false" aria-controls="offer-panel">Mit Plan</button>
+            <button role="tab" class="dial__stop" data-stop="3" aria-selected="false" aria-controls="offer-panel">Alles</button>
+          </div>
+        </div>
+
+        <div class="offer__panel" id="offer-panel" role="tabpanel" aria-live="polite" data-reveal>
+          <!-- Die Texte der vier Stufen. Reihenfolge = Reihenfolge auf dem Tacho. -->
+          <article class="offer__item is-active" data-offer="0">
+            <h3 class="display-3">Einzelprojekte</h3>
+            <p>Ein Shooting, eine Kampagne, ein Launch. Einmal richtig gemacht, ohne dass du dich langfristig bindest.</p>
+            <p class="offer__fit">Passt, wenn du etwas Konkretes vorhast.</p>
+          </article>
+          <article class="offer__item" data-offer="1">
+            <h3 class="display-3">Content Creation</h3>
+            <p>Fotos, Videos, Reels und Stories. Ich komme vorbei, fotografiere und filme, und du bekommst Content, den du direkt posten kannst.</p>
+            <p class="offer__fit">Passt, wenn du selbst postest, aber besseres Material brauchst.</p>
+          </article>
+          <article class="offer__item" data-offer="2">
+            <h3 class="display-3">Strategie &amp; Beratung</h3>
+            <p>Du weißt, dass du präsenter sein willst, aber nicht wie. Wir setzen uns zusammen und machen einen Plan, der zu deiner Marke und zu deinen Leuten passt.</p>
+            <p class="offer__fit">Passt, wenn du eine Richtung brauchst, bevor es losgeht.</p>
+          </article>
+          <article class="offer__item" data-offer="3">
+            <p class="offer__max">Maxed out.</p>
+            <h3 class="display-3">Social Media Management</h3>
+            <p>Ich übernehme deine Kanäle: Planung, Postings, Antworten in den Kommentaren und ein ehrlicher Blick darauf, was funktioniert und was nicht.</p>
+            <p class="offer__fit">Passt, wenn du dich um nichts mehr kümmern willst.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABLAUF: vier kurze Sätze, der Punkt wandert beim Scrollen mit -->
+  <section class="section section--black process" id="ablauf">
+    <div class="glow glow--process" aria-hidden="true"></div>
+    <div class="container process__inner">
+      <h2 class="display-2" data-reveal>Und so läuft's<span class="dot-accent">.</span></h2>
+      <ol class="steps" data-steps>
+        <li class="step"><p class="step__title">Du schreibst mir.</p><p class="step__text">Ein paar Sätze reichen.</p></li>
+        <li class="step"><p class="step__title">Wir telefonieren kurz.</p><p class="step__text">Unverbindlich. Wir schauen, ob's passt.</p></li>
+        <li class="step"><p class="step__title">Du bekommst ein Angebot.</p><p class="step__text">Fixer Preis, kein Kleingedrucktes.</p></li>
+        <li class="step"><p class="step__title">Ich leg los.</p><p class="step__text">Und wir bleiben in Kontakt, bis es wirklich nach dir klingt.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- KONTAKT -->
+  <section class="section section--olive contact" id="kontakt">
+    <div class="glow glow--closing" aria-hidden="true"></div>
+    <div class="container contact__inner">
+      <h2 class="display-1 contact__title" data-reveal>Schreib mir<span class="dot-accent">.</span></h2>
+      <p class="body-lg contact__sub" data-reveal>Erzähl mir kurz, was du vorhast. Ein paar Sätze reichen.</p>
+      <p class="contact__region" data-reveal>Ich bin vor allem in Wien, Niederösterreich und der Steiermark unterwegs. Auf Anfrage gern auch woanders.</p>
+
+      <div class="contact__actions" data-reveal>
+        <a class="btn btn--primary btn--lg" href="mailto:maxima@jeitler.net?subject=Anfrage%20%C3%BCber%20die%20Website" data-magnetic>E-Mail schreiben</a>
+        <a class="btn btn--ghost btn--lg" href="https://ig.me/m/maxedoutstudio" target="_blank" rel="noopener" data-magnetic>Per Instagram DM</a>
+      </div>
+
+      <button class="copy-mail" type="button" data-copy="maxima@jeitler.net" data-reveal>
+        <span class="copy-mail__addr">maxima@jeitler.net</span>
+        <span class="copy-mail__label" data-copy-label>Kopieren</span>
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <a class="wordmark" href="#top" aria-label="MAXED OUT. nach oben">
+      <img class="logo logo--footer" src="maxed-out-mittel.svg" alt="MAXED OUT.">
+    </a>
+    <div class="footer__links">
+      <a href="https://instagram.com/maxedoutstudio" target="_blank" rel="noopener">Instagram</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </div>
+  </div>
+</footer>
+
+<!-- Mini-Tacho unten rechts: zeigt, wie weit du gescrollt hast. Klick = nach oben -->
+<button class="scroll-gauge" type="button" aria-label="Nach oben" data-scroll-gauge></button>
+
+<script src="gauge-paths.js" defer></script>
+<script src="script.js" defer></script>
+</body>
+</html>
