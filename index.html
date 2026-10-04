@@ -179,7 +179,11 @@
     <div class="container contact__inner">
       <figure class="contact__photo" data-reveal data-tilt>
         <div class="contact__card">
-          <img src="maxima-handy.jpg" alt="Maxima sitzt lächelnd auf einer Couch und schaut auf ihr Handy" width="800" height="1200" loading="lazy">
+          <!-- Ohne loading="lazy": lädt gleich nach dem Rest im Hintergrund, damit es da ist, wenn man hinscrollt -->
+          <picture>
+            <source srcset="maxima-handy.webp" type="image/webp">
+            <img src="maxima-handy.jpg" alt="Maxima sitzt lächelnd auf einer Couch und schaut auf ihr Handy" width="600" height="900" decoding="async">
+          </picture>
         </div>
         <div class="notif" aria-hidden="true">
           <span class="notif__icon"><img src="favicon.svg" alt=""></span>
