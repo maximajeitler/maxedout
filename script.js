@@ -45,7 +45,8 @@
   let last = performance.now();
   function loop(now) {
     const dt = Math.min((now - last) / 1000, 0.05); last = now;
-    tickers.forEach((fn) => fn(dt, now));
+    // Ein Fehler in einer Animation darf nie alle anderen (Laufband ...) anhalten
+    tickers.forEach((fn) => { try { fn(dt, now); } catch (err) { console.error(err); } });
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
@@ -121,17 +122,9 @@
     return clamp((Math.atan2(dy, dx) * 180) / Math.PI, 0, 180);
   }
 
-  // Am Handy liegt der Finger meist unter dem Tacho. Darum ein Drehpunkt, der
-  // nach unten "nachgibt": links wischen = Nadel links, rechts = rechts.
-  function touchAngleTo(g, x, y) {
-    const p = g.pivotOnScreen();
-    const dx = x - p.x, dy = Math.max(p.y - y, 0) + innerWidth * 0.25;
-    return clamp((Math.atan2(dy, dx) * 180) / Math.PI, 0, 180);
-  }
-
   /* ---------------------------------------------------------
      1) Hero: Intro wie im Logo-Reel, danach folgt die Nadel
-        dem Zeiger (am Handy: dem Scrollen)
+        dem Zeiger (am Handy: lädt einmal auf MAX)
   --------------------------------------------------------- */
   const heroHost = document.querySelector('[data-hero-gauge]');
   const hero = document.querySelector('.hero');
@@ -141,7 +134,8 @@
 
   if (heroHost && P) {
     heroGauge = buildGauge(heroHost, { dim: false, follow: true });
-    heroNeedle = new Spring(192, { stiffness: 90, damping: 11 });
+    // Handy: Nadel startet ganz links bei 0 %, sonst wie im Logo-Reel
+    heroNeedle = new Spring(finePointer ? 192 : 180, { stiffness: 90, damping: 11 });
     let draw = reduced ? 1 : 0;
     heroGauge.setDraw(draw);
     let shownValue = -1;
@@ -162,7 +156,27 @@
 
     // Intro: Bogen zeichnen, Nadel schwingt in den roten Bereich und federt ein
     const t0 = performance.now();
-    if (!reduced) {
+    if (!finePointer) {
+      // Handy: kein Zeiger, dem man folgen könnte. Stattdessen lädt der Tacho
+      // einmal von 0 auf MAX und bleibt dort stehen. Maxed out.
+      // Läuft auch bei "Bewegung reduzieren", weil es nur eine ruhige Fahrt ist.
+      heroGauge.setDraw(1);
+      {
+        let maxed = false;
+        tickers.add(function load(dt, now) {
+          const p = clamp(((now - t0) / 1000 - 0.5) / 2.4, 0, 1);
+          const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+          heroNeedle.target = 180 - 180 * e;
+          if (p >= 1 && !maxed) {
+            maxed = true;
+            heroHost.classList.add('is-revving');
+            buzz([18, 40, 12]);
+            setTimeout(() => heroHost.classList.remove('is-revving'), 700);
+            tickers.delete(load);
+          }
+        });
+      }
+    } else if (!reduced) {
       tickers.add(function intro(dt, now) {
         const t = (now - t0) / 1000;
         const p = clamp((t - 0.15) / 1.1, 0, 1);
@@ -175,7 +189,7 @@
 
     setTimeout(() => { heroFollow = true; }, reduced ? 0 : 1900);
 
-    // Zeiger folgt
+    // Zeiger folgt (nur mit Maus, am Handy bleibt die Nadel auf MAX)
     if (finePointer) {
       window.addEventListener('pointermove', (e) => {
         if (!heroFollow) return;
@@ -184,43 +198,6 @@
         heroNeedle.target = angleTo(heroGauge, e.clientX, e.clientY);
       }, { passive: true });
       document.documentElement.addEventListener('pointerleave', () => { heroNeedle.target = NEEDLE_REST; });
-    } else {
-      // Touch: Scrollen dreht den Motor hoch, der Finger zieht die Nadel mit,
-      // und ein Tipp auf den Tacho gibt Gas.
-      let scrollTarget = NEEDLE_REST, fingerOn = false, revUntil = 0, revTimer;
-      const settle = () => { if (heroFollow && !fingerOn && performance.now() >= revUntil) heroNeedle.target = scrollTarget; };
-      window.addEventListener('scroll', () => {
-        const p = clamp(window.scrollY / (hero.offsetHeight * 0.6), 0, 1);
-        scrollTarget = lerp(NEEDLE_REST, 0, p);
-        settle();
-      }, { passive: true });
-
-      const follow = (e) => {
-        if (!heroFollow || performance.now() < revUntil) return;
-        const t = e.touches[0]; if (!t) return;
-        heroNeedle.target = touchAngleTo(heroGauge, t.clientX, t.clientY);
-      };
-      hero.addEventListener('touchstart', (e) => { fingerOn = true; follow(e); }, { passive: true });
-      hero.addEventListener('touchmove', follow, { passive: true });
-      const release = () => { fingerOn = false; clearTimeout(revTimer); revTimer = setTimeout(settle, 450); };
-      hero.addEventListener('touchend', release, { passive: true });
-      hero.addEventListener('touchcancel', release, { passive: true });
-
-      // Gas geben
-      const rev = (strength = 1) => {
-        heroNeedle.target = lerp(NEEDLE_REST, -6, strength);
-        heroNeedle.v -= 260 * strength; // kleiner Kick, damit es ruckt wie ein Motor
-        revUntil = performance.now() + 650 * strength;
-        heroHost.classList.add('is-revving');
-        buzz(strength === 1 ? [18, 40, 12] : 10);
-        clearTimeout(revTimer);
-        revTimer = setTimeout(() => { heroHost.classList.remove('is-revving'); settle(); }, 650 * strength);
-      };
-      heroHost.classList.add('is-tappable');
-      heroHost.addEventListener('click', () => { if (heroFollow) rev(1); });
-
-      // Einmal kurz anblasen, damit man merkt: der lebt
-      if (!reduced) setTimeout(() => { if (!fingerOn && window.scrollY < 40) rev(0.45); }, 2600);
     }
   }
 
@@ -487,7 +464,8 @@
       boost = clamp(boost + Math.abs(d) * 0.6, 0, 900);
     }, { passive: true });
     tickers.add((dt) => {
-      if (reduced) return;
+      // "Bewegung reduzieren" (am iPhone oft an): läuft trotzdem, aber ruhig und ohne Scroll-Gas
+      if (reduced) boost = 0;
       boost *= Math.pow(0.04, dt);
       x += dir * (45 + boost) * dt;
       const w = track.scrollWidth / 2;

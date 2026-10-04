@@ -222,10 +222,10 @@ button { font: inherit; color: inherit; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: .75rem; }
 .hero__hint { z-index: 1; position: absolute; left: 0; right: 0; bottom: max(1.5rem, env(safe-area-inset-bottom)); margin: 0; text-align: center; font-size: .82rem; color: rgba(237, 230, 214, .45); }
 .hint-touch { display: none; }
-@media (hover: none) { .hint-mouse { display: none; } .hint-touch { display: inline; } }
-/* Touch: Tacho ist antippbar */
-.hero__gauge.is-tappable { cursor: pointer; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
-.hero__gauge.is-tappable::before {
+/* Handy: keine Maus, also auch kein Hinweis. Der Tacho lädt von selbst auf MAX */
+@media (hover: none) { .hero__hint { display: none; } }
+/* Glühen, wenn der Tacho auf MAX springt */
+.hero__gauge::before {
   content: ''; position: absolute; left: 50%; top: 58%; width: 120%; aspect-ratio: 1; border-radius: 50%;
   transform: translate(-50%, -50%) scale(.6); opacity: 0; pointer-events: none;
   background: radial-gradient(circle, rgba(204, 99, 64, .45), transparent 62%);
