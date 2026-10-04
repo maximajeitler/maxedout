@@ -253,6 +253,40 @@ button { font: inherit; color: inherit; }
   .hero__sub { margin: 1.1rem 0 1.6rem; }
 }
 
+/* Handy: ruhige, zentrierte Komposition. Tacho, MAX und Text auf einer Achse */
+@media (max-width: 860px) {
+  .hero { min-height: calc(100svh - 5.5rem); padding: 5.25rem 0 2.25rem; } /* Laufband sitzt über der Browser-Leiste */
+  .hero__grid { gap: 1.9rem; text-align: center; }
+  .hero__gauge { width: min(64vw, 300px); }
+  .hero__readout { position: static; transform: none; margin-top: .55rem; text-align: center; font-size: .82rem; letter-spacing: .2em; padding-left: .2em; }
+  .hero__content { display: flex; flex-direction: column; align-items: center; }
+  .hero .kicker { font-size: .7rem; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; margin-bottom: 1.1rem; }
+  .hero__title { font-size: clamp(1.9rem, 8.6vw, 3rem); line-height: 1.06; text-wrap: balance; }
+  .hero__sub { margin: 1.15rem auto 1.9rem; max-width: 22rem; font-size: 1.02rem; }
+  .hero__actions { display: flex; flex-direction: column; align-items: center; gap: .35rem; width: 100%; }
+  .hero__actions .btn--primary { width: 100%; max-width: 22rem; min-height: 3.35rem; }
+  .hero__actions .btn--ghost { border-color: transparent; min-height: 2.9rem; color: var(--sand-dim); font-weight: 500; }
+  .hero__actions .btn--ghost::after { content: '↓'; margin-left: .45rem; color: var(--rust-bright); }
+}
+@media (max-width: 560px) {
+  .hero__actions { display: flex; }
+  .hero__actions .btn--ghost { width: auto; }
+}
+@media (max-width: 390px) {
+  .hero .kicker { font-size: .64rem; letter-spacing: .13em; }
+}
+@media (max-height: 700px) and (max-width: 560px) {
+  .hero__gauge { width: min(52vw, 240px); }
+  .hero__grid { gap: 1.4rem; }
+}
+
+/* Handy: Texte sauber umbrechen (keine einzelnen Wörter allein in der letzten Zeile) */
+@media (max-width: 560px) {
+  .m-line { display: block; }
+  .display-2, .contact__sub, .contact__region, .step__text, .offer__intro { text-wrap: balance; }
+  .about__text p, .offer__item p { text-wrap: pretty; }
+}
+
 /* Wort-Split fürs Intro */
 .split-word { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-bottom: -.08em; }
 .split-word > span { display: inline-block; transform: translateY(105%); transition: transform 1s var(--ease-out); }
@@ -388,6 +422,16 @@ button { font: inherit; color: inherit; }
   transition: opacity .5s, transform .8s var(--ease-out);
 }
 .contact__photo.is-in .notif { opacity: 1; transform: translateZ(50px); transition-delay: .9s; }
+@media (hover: none) {
+  .notif { transition: none; transform: translateY(-.9rem) scale(.9); }
+  .contact__photo.is-in .notif { opacity: 0; transform: translateY(-.9rem) scale(.9); }
+  .contact__photo.notif-in .notif { animation: notif-pop .85s var(--ease-out) both; }
+}
+@keyframes notif-pop {
+  0%   { opacity: 0; transform: translateY(-1.6rem) scale(.88); }
+  55%  { opacity: 1; transform: translateY(.25rem) scale(1.02); }
+  100% { opacity: 1; transform: none; }
+}
 .notif__icon { flex-shrink: 0; width: 2.3rem; height: 2.3rem; border-radius: .6rem; background: var(--olive); display: grid; place-items: center; }
 .notif__icon img { width: 1.5rem; height: 1.5rem; }
 .notif__body { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
@@ -471,9 +515,16 @@ button { font: inherit; color: inherit; }
 .legal ~ .footer, .legal + .footer { margin-top: 0; }
 
 /* ---------- Weniger Bewegung ---------- */
+/* Statt alles abzuschalten: keine Bewegung im Raum, aber sanftes Einblenden.
+   (Am iPhone ist "Bewegung reduzieren" oft eingeschaltet, dann soll die Seite trotzdem leben.) */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after { transition-duration: .01ms !important; animation: none !important; }
-  .js [data-reveal], .js [data-intro], .split-word > span { opacity: 1; transform: none; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  .js [data-reveal], .js [data-intro] { transform: none; transition: opacity 1s ease; }
+  .split-word > span { transform: none; }
   .js .step { --o: 1; }
+  .offer__item { transform: none; }
+  .notif, .contact__photo.is-in .notif { transform: none; }
+  .contact__photo.notif-in .notif { animation: notif-fade .8s ease both !important; }
 }
+@keyframes notif-fade { from { opacity: 0; } to { opacity: 1; } }

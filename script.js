@@ -452,6 +452,19 @@
   }
 
   /* ---------------------------------------------------------
+     6b) Handy: Benachrichtigung ploppt erst, wenn das Foto
+         wirklich im Bild ist (nicht schon beim Anschneiden)
+  --------------------------------------------------------- */
+  const notifHost = document.querySelector('.contact__photo');
+  if (notifHost && !finePointer) {
+    new IntersectionObserver((entries, o) => {
+      if (!entries[0].isIntersecting) return;
+      o.disconnect();
+      setTimeout(() => { notifHost.classList.add('notif-in'); buzz(12); }, 450);
+    }, { threshold: 0.6 }).observe(notifHost);
+  }
+
+  /* ---------------------------------------------------------
      7) Laufband: läuft ruhig, Scrollen gibt Gas (und Richtung)
   --------------------------------------------------------- */
   const track = document.querySelector('[data-marquee]');
