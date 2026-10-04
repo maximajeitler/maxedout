@@ -58,7 +58,7 @@
   const NEEDLE_REST = 39; // So steht die Nadel im Logo
   let gaugeId = 0;
 
-  function buildGauge(host, { ticks = [], track = false, dim = true } = {}) {
+  function buildGauge(host, { ticks = [], track = false, dim = true, follow = false } = {}) {
     const id = `g${gaugeId++}`;
     const svg = document.createElementNS(NS, 'svg');
     svg.setAttribute('viewBox', '62 560 428 252');
@@ -66,6 +66,7 @@
       <defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="400" width="600" height="600">
         <path d="M128.75 781.75 A147 147 0 0 1 422.75 781.75" fill="none" stroke="#fff" stroke-width="84" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="0"/>
       </mask></defs>
+      ${follow ? `<g class="g-track" opacity="0"><path d="${P.arcSand}" fill="#EDE6D6"/><path d="${P.arcTaupe}" fill="#8A7A5C"/><path d="${P.arcRust}" fill="#B5502D"/></g>` : ''}
       ${track ? `<g opacity=".16"><path d="${P.arcSand}" fill="#EDE6D6"/><path d="${P.arcTaupe}" fill="#EDE6D6"/><path d="${P.arcRust}" fill="#EDE6D6"/></g>` : ''}
       <g mask="url(#${id})">
         <path class="g-seg" d="${P.arcSand}" fill="#EDE6D6"/>
@@ -84,11 +85,14 @@
     const drawPath = svg.querySelector('mask path');
     const segs = [...svg.querySelectorAll('.g-seg')];
     const tickEls = [...svg.querySelectorAll('.g-tick')];
+    const trackEl = svg.querySelector('.g-track');
 
     return {
       svg,
       setAngle(theta) {
         needle.setAttribute('transform', `rotate(${NEEDLE_REST - theta} ${PIV.x} ${PIV.y})`);
+        // follow: Der Bogen füllt sich genau bis zur Nadel, der Rest bleibt durchsichtig
+        if (follow) drawPath.setAttribute('stroke-dashoffset', (1 - clamp((180 - theta) / 180, 0, 1)).toFixed(4));
         if (dim) {
           // Segmente leuchten erst, wenn die Nadel sie erreicht hat
           segs[1].style.opacity = lerp(0.22, 1, clamp((128 - theta) / 14, 0, 1));
@@ -96,7 +100,10 @@
         }
         svg.classList.toggle('is-hot', theta < 30);
       },
-      setDraw(p) { drawPath.setAttribute('stroke-dashoffset', 1 - clamp(p, 0, 1)); },
+      setDraw(p) {
+        if (follow) trackEl.setAttribute('opacity', (0.17 * clamp(p, 0, 1)).toFixed(3)); // nur die durchsichtige Spur blendet ein
+        else drawPath.setAttribute('stroke-dashoffset', 1 - clamp(p, 0, 1));
+      },
       setTickActive(i) { tickEls.forEach((t, j) => (t.style.stroke = j === i ? '#EDE6D6' : '')); },
       // Bildschirmposition des Drehpunkts
       pivotOnScreen() {
@@ -133,7 +140,7 @@
   let heroGauge, heroNeedle, heroFollow = false;
 
   if (heroHost && P) {
-    heroGauge = buildGauge(heroHost);
+    heroGauge = buildGauge(heroHost, { dim: false, follow: true });
     heroNeedle = new Spring(192, { stiffness: 90, damping: 11 });
     let draw = reduced ? 1 : 0;
     heroGauge.setDraw(draw);
