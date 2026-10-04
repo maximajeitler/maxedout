@@ -44,8 +44,11 @@ body {
   color: var(--sand);
   background: var(--near-black);
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
+  overflow-x: clip;
 }
+html.menu-open, html.menu-open body { overflow: hidden; }
 
 img, svg { display: block; max-width: 100%; }
 a { color: inherit; }
@@ -54,7 +57,7 @@ button { font: inherit; color: inherit; }
 
 :focus-visible { outline: 2px solid var(--rust-bright); outline-offset: 4px; border-radius: 6px; }
 
-.container { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 var(--pad-x); }
+.container { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 max(var(--pad-x), env(safe-area-inset-right)) 0 max(var(--pad-x), env(safe-area-inset-left)); }
 
 .skip-link {
   position: absolute; left: 1rem; top: -4rem; z-index: 200;
@@ -90,11 +93,21 @@ button { font: inherit; color: inherit; }
   background: radial-gradient(120px circle at var(--glow-x) var(--glow-y), rgba(255, 236, 210, .35), transparent 70%);
   transition: opacity .3s;
 }
-.btn:hover::before { opacity: 1; }
 .btn--primary { background: var(--rust); color: var(--sand); }
-.btn--primary:hover { background: var(--rust-bright); }
 .btn--ghost { border-color: rgba(237, 230, 214, .28); color: var(--sand); }
-.btn--ghost:hover { border-color: var(--sand); }
+@media (hover: hover) {
+  .btn:hover::before { opacity: 1; }
+  .btn--primary:hover { background: var(--rust-bright); }
+  .btn--ghost:hover { border-color: var(--sand); }
+}
+/* Am Handy: Buttons geben beim Antippen nach, mit Lichtpunkt da, wo der Finger ist */
+@media (hover: none) {
+  .btn { transition: background-color .3s, border-color .3s, color .3s, transform .45s var(--ease-out); }
+  .btn:active { transform: scale(.96); transition-duration: .1s; }
+  .btn.is-pressed::before { opacity: 1; transition-duration: .05s; }
+  .btn--primary:active { background: var(--rust-bright); }
+  .btn--ghost:active { border-color: var(--sand); }
+}
 .btn--lg { min-height: 3.6rem; padding: 1rem 2rem; font-size: 1.05rem; }
 
 /* ---------- Navigation ---------- */
@@ -129,6 +142,7 @@ button { font: inherit; color: inherit; }
   clip-path: circle(0 at calc(100% - 2.6rem) 2.4rem);
   transition: clip-path .7s var(--ease-out);
 }
+.drawer[hidden] { display: none; }
 .drawer.is-open { clip-path: circle(150% at calc(100% - 2.6rem) 2.4rem); }
 .drawer__links { display: flex; flex-direction: column; gap: .5rem; }
 .drawer__links a { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 10vw, 3rem); text-decoration: none; line-height: 1.2;
@@ -143,7 +157,8 @@ button { font: inherit; color: inherit; }
 @media (max-width: 860px) {
   .nav__links, .nav__cta { display: none; }
   .nav__burger { display: block; }
-  .logo--nav { height: 2.2rem; }
+  .logo--nav { height: 1.35rem; }
+  .nav__inner { height: 4.25rem; }
 }
 
 /* ---------- Sections ---------- */
@@ -205,15 +220,37 @@ button { font: inherit; color: inherit; }
 .hero__title { font-size: clamp(2rem, 7.4vw, 4rem); hyphens: manual; }
 .hero__sub { max-width: 30rem; margin: 1.5rem 0 2.25rem; color: var(--sand-dim); }
 .hero__actions { display: flex; flex-wrap: wrap; gap: .75rem; }
-.hero__hint { z-index: 1; position: absolute; left: 0; right: 0; bottom: 1.5rem; margin: 0; text-align: center; font-size: .82rem; color: rgba(237, 230, 214, .45); }
+.hero__hint { z-index: 1; position: absolute; left: 0; right: 0; bottom: max(1.5rem, env(safe-area-inset-bottom)); margin: 0; text-align: center; font-size: .82rem; color: rgba(237, 230, 214, .45); }
 .hint-touch { display: none; }
 @media (hover: none) { .hint-mouse { display: none; } .hint-touch { display: inline; } }
+/* Touch: Tacho ist antippbar */
+.hero__gauge.is-tappable { cursor: pointer; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+.hero__gauge.is-tappable::before {
+  content: ''; position: absolute; left: 50%; top: 58%; width: 120%; aspect-ratio: 1; border-radius: 50%;
+  transform: translate(-50%, -50%) scale(.6); opacity: 0; pointer-events: none;
+  background: radial-gradient(circle, rgba(204, 99, 64, .45), transparent 62%);
+  transition: opacity .9s, transform 1s var(--ease-out);
+}
+.hero__gauge.is-revving::before { opacity: 1; transform: translate(-50%, -50%) scale(1); transition-duration: .15s, .4s; }
+.hero__gauge.is-revving svg { animation: rumble .09s linear infinite; }
+@keyframes rumble { 0%, 100% { translate: 0 0; } 25% { translate: .6px -.4px; } 50% { translate: -.5px .5px; } 75% { translate: .4px .6px; } }
 
 @media (max-width: 860px) {
-  .hero { padding-top: 6rem; justify-content: flex-start; }
-  .hero__grid { grid-template-columns: 1fr; gap: 2.5rem; }
-  .hero__gauge { order: 1; width: min(78%, 360px); margin: 1rem auto 0; }
+  .hero { padding: 5.5rem 0 4.5rem; justify-content: center; }
+  .hero__grid { grid-template-columns: 1fr; gap: 2.75rem; }
+  .hero__gauge { order: 1; width: min(84%, 380px); margin: 0 auto; }
   .hero__content { order: 2; }
+  .hero__glow { left: 50%; top: 30%; width: 120vmax; height: 120vmax; }
+}
+@media (max-width: 560px) {
+  .hero__actions { display: grid; grid-template-columns: 1fr; }
+  .hero__actions .btn { width: 100%; }
+  .hero__title { overflow-wrap: break-word; }
+}
+@media (max-height: 700px) and (max-width: 560px) {
+  .hero__gauge { width: min(66%, 300px); }
+  .hero__grid { gap: 2.25rem; }
+  .hero__sub { margin: 1.1rem 0 1.6rem; }
 }
 
 /* Wort-Split fürs Intro */
@@ -234,7 +271,7 @@ button { font: inherit; color: inherit; }
 .about__portrait img { width: 100%; height: auto; aspect-ratio: 2 / 3; object-fit: cover; box-shadow: 0 30px 80px rgba(0, 0, 0, .45); }
 .about__portrait::after { /* Lichtreflex, folgt dem Zeiger */
   content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: radial-gradient(400px circle at var(--lx, 50%) var(--ly, 0%), rgba(255, 230, 200, .16), transparent 60%);
+  background: radial-gradient(min(400px, 90%) circle at var(--lx, 50%) var(--ly, 0%), rgba(255, 230, 200, .16), transparent 60%);
   opacity: var(--lo, 0); transition: opacity .4s;
 }
 .about__tag {
@@ -250,10 +287,10 @@ button { font: inherit; color: inherit; }
 .accent-text { color: var(--rust-bright); }
 .about__insta { display: inline-block; margin-top: 2rem; color: var(--sand-dim); text-decoration: none; font-size: .95rem; }
 .about__insta span { color: var(--sand); border-bottom: 1px solid var(--rust); padding-bottom: 1px; margin-left: .25rem; transition: color .3s; }
-.about__insta:hover span { color: var(--rust-bright); }
+@media (hover: hover) { .about__insta:hover span { color: var(--rust-bright); } }
 @media (max-width: 860px) {
   .about__grid { grid-template-columns: 1fr; }
-  .about__portrait { max-width: 420px; }
+  .about__portrait { max-width: 420px; width: 100%; margin: 0 auto; }
 }
 
 /* ---------- Angebot / Tacho-Regler ---------- */
@@ -261,7 +298,7 @@ button { font: inherit; color: inherit; }
 .offer__intro { margin: 0; color: var(--sand-dim); max-width: 30rem; }
 .offer__grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(2.5rem, 6vw, 6rem); align-items: center; }
 .dial { user-select: none; -webkit-user-select: none; }
-.dial__gauge { position: relative; touch-action: none; cursor: grab; }
+.dial__gauge { position: relative; touch-action: pan-y; cursor: grab; -webkit-touch-callout: none; }
 .dial__gauge.is-dragging { cursor: grabbing; }
 .dial__gauge svg { width: 100%; height: auto; overflow: visible; }
 .dial__stops { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; margin-top: 2rem; }
@@ -270,23 +307,28 @@ button { font: inherit; color: inherit; }
   background: transparent; border: 1px solid rgba(237, 230, 214, .2); color: var(--sand-dim); font-size: .9rem; font-weight: 500;
   transition: background-color .35s, color .35s, border-color .35s;
 }
-.dial__stop:hover { border-color: rgba(237, 230, 214, .5); color: var(--sand); }
+@media (hover: hover) { .dial__stop:hover { border-color: rgba(237, 230, 214, .5); color: var(--sand); } }
+.dial__stop { transition: background-color .35s, color .35s, border-color .35s, transform .4s var(--ease-out); }
+.dial__stop:active { transform: scale(.94); transition-duration: .1s; }
 .dial__stop[aria-selected="true"] { background: var(--sand); color: var(--near-black); border-color: var(--sand); }
 .dial__stop[data-stop="3"][aria-selected="true"] { background: var(--rust); color: var(--sand); border-color: var(--rust); }
 
-.offer__panel { position: relative; min-height: 17rem; }
+.offer__panel { position: relative; display: grid; }
 .offer__item {
-  position: absolute; inset: 0 0 auto; opacity: 0; transform: translateY(1.25rem); pointer-events: none;
-  transition: opacity .45s, transform .7s var(--ease-out);
+  grid-area: 1 / 1; opacity: 0; transform: translateY(1.25rem); pointer-events: none; visibility: hidden;
+  transition: opacity .45s, transform .7s var(--ease-out), visibility 0s .7s;
 }
-.offer__item.is-active { position: relative; opacity: 1; transform: none; pointer-events: auto; transition-delay: .08s; }
+.offer__item.is-active { opacity: 1; transform: none; pointer-events: auto; visibility: visible; transition-delay: .08s, .08s, 0s; }
 .offer__item p { color: var(--sand-dim); margin: 1rem 0 0; max-width: 32rem; font-size: var(--fs-body-lg); line-height: 1.55; }
 .offer__item .offer__fit { font-size: .95rem; color: var(--sand); padding-top: 1rem; border-top: 1px solid var(--sand-faint); margin-top: 1.5rem; }
 .offer__item .offer__max { margin: 0 0 .75rem; font-family: var(--font-display); font-weight: 700; font-size: .95rem; color: var(--rust-bright); }
 @media (max-width: 860px) {
   .offer__head, .offer__grid { grid-template-columns: 1fr; }
-  .dial { max-width: 460px; }
-  .offer__panel { min-height: 19rem; }
+  .offer__grid { gap: 2.5rem; }
+  .dial { max-width: 460px; width: 100%; margin: 0 auto; }
+  .dial__stops { margin-top: 1.5rem; gap: .4rem; }
+  .dial__stop { font-size: .85rem; padding: .5rem .2rem; }
+  .offer__head { margin-bottom: 2.5rem; }
 }
 
 /* Gemeinsame Tacho-Teile */
@@ -326,6 +368,35 @@ button { font: inherit; color: inherit; }
 .contact__inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; }
 .contact__title { font-size: clamp(2.8rem, 13vw, 9rem); }
 .contact__sub { color: var(--sand-dim); margin: 1.5rem 0 .5rem; }
+
+/* Foto über "Schreib mir." mit einer Benachrichtigung, die reinploppt */
+.contact__photo { position: relative; width: clamp(13rem, 24vw, 17.5rem); margin: 0 0 3.25rem; transform-style: preserve-3d; will-change: transform; }
+.contact__card { border-radius: var(--radius); overflow: hidden; rotate: -3deg; box-shadow: 0 30px 80px rgba(0, 0, 0, .5); }
+.contact__card img { width: 100%; height: auto; aspect-ratio: 2 / 3; object-fit: cover; }
+.contact__photo::after { /* Lichtreflex wie beim Porträt */
+  content: ''; position: absolute; inset: 0; border-radius: var(--radius); rotate: -3deg; pointer-events: none;
+  background: radial-gradient(min(320px, 90%) circle at var(--lx, 50%) var(--ly, 0%), rgba(255, 230, 200, .16), transparent 60%);
+  opacity: var(--lo, 0); transition: opacity .4s;
+}
+.notif {
+  position: absolute; left: 50%; top: 1.4rem; translate: -50% 0; width: min(19.5rem, calc(100vw - 2.5rem)); z-index: 1;
+  display: flex; align-items: center; gap: .7rem; padding: .7rem .85rem; text-align: left;
+  background: rgba(30, 31, 24, .78); border: 1px solid rgba(237, 230, 214, .12); border-radius: 1.1rem;
+  backdrop-filter: blur(16px) saturate(1.3); -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .4);
+  opacity: 0; transform: translateY(-1rem) scale(.92) translateZ(50px);
+  transition: opacity .5s, transform .8s var(--ease-out);
+}
+.contact__photo.is-in .notif { opacity: 1; transform: translateZ(50px); transition-delay: .9s; }
+.notif__icon { flex-shrink: 0; width: 2.3rem; height: 2.3rem; border-radius: .6rem; background: var(--olive); display: grid; place-items: center; }
+.notif__icon img { width: 1.5rem; height: 1.5rem; }
+.notif__body { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.notif__body strong { font-size: .85rem; font-weight: 600; color: var(--sand); }
+.notif__body span { font-size: .8rem; color: var(--sand-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notif__time { align-self: flex-start; margin-left: auto; font-size: .72rem; color: rgba(237, 230, 214, .45); }
+@media (max-width: 560px) {
+  .contact__photo { width: min(62vw, 15rem); margin-bottom: 2.75rem; }
+}
 .contact__region { color: rgba(237, 230, 214, .55); font-size: .95rem; max-width: 28rem; margin: 0 0 2.5rem; }
 .contact__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; }
 .copy-mail {
@@ -333,7 +404,9 @@ button { font: inherit; color: inherit; }
   background: rgba(21, 20, 13, .35); border: 1px solid var(--sand-faint); border-radius: 999px; cursor: pointer;
   transition: border-color .3s;
 }
-.copy-mail:hover { border-color: rgba(237, 230, 214, .45); }
+@media (hover: hover) { .copy-mail:hover { border-color: rgba(237, 230, 214, .45); } }
+.copy-mail:active { transform: scale(.97); }
+.copy-mail { transition: border-color .3s, transform .3s var(--ease-out); }
 .copy-mail__addr { font-size: .95rem; }
 .copy-mail__label { font-size: .8rem; font-weight: 600; padding: .35rem .8rem; border-radius: 999px; background: var(--sand-faint); min-width: 5.5rem; transition: background-color .3s, color .3s; }
 .copy-mail.is-copied .copy-mail__label { background: var(--sand); color: var(--near-black); }
@@ -344,10 +417,16 @@ button { font: inherit; color: inherit; }
 .footer__links { display: flex; gap: 1.5rem; font-size: .9rem; }
 .footer__links a { color: var(--sand-dim); text-decoration: none; transition: color .3s; }
 .footer__links a:hover { color: var(--sand); }
+@media (max-width: 560px) {
+  .contact__actions { display: grid; grid-template-columns: 1fr; width: 100%; max-width: 22rem; }
+  .contact__actions .btn { width: 100%; }
+  .footer { padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)); }
+  .footer__links { gap: 1.25rem; }
+}
 
 /* ---------- Mini-Tacho (Scroll-Fortschritt) ---------- */
 .scroll-gauge {
-  position: fixed; right: clamp(1rem, 2.5vw, 1.75rem); bottom: clamp(1rem, 2.5vw, 1.75rem); z-index: 80;
+  position: fixed; right: max(clamp(1rem, 2.5vw, 1.75rem), env(safe-area-inset-right)); bottom: max(clamp(1rem, 2.5vw, 1.75rem), env(safe-area-inset-bottom)); z-index: 80;
   width: 3.75rem; height: 3.75rem; border-radius: 50%; padding: .55rem; cursor: pointer;
   background: rgba(21, 20, 13, .7); border: 1px solid var(--sand-faint);
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -355,7 +434,8 @@ button { font: inherit; color: inherit; }
   transition: opacity .4s, transform .5s var(--ease-out), border-color .3s;
 }
 .scroll-gauge.is-visible { opacity: 1; transform: none; pointer-events: auto; }
-.scroll-gauge:hover { border-color: rgba(237, 230, 214, .45); }
+@media (hover: hover) { .scroll-gauge:hover { border-color: rgba(237, 230, 214, .45); } }
+.scroll-gauge:active { transform: scale(.9); }
 .scroll-gauge svg { width: 100%; height: 100%; }
 
 /* ---------- Scroll-Reveal ---------- */

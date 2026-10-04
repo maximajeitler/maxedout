@@ -34,6 +34,12 @@
     get resting() { return Math.abs(this.v) < 0.01 && Math.abs(this.value - this.target) < 0.01; }
   }
 
+  // Merkt sich, ob ein Element gerade (fast) im Bild ist. So rechnen wir nur, was man sieht.
+  const visible = new WeakMap();
+  const visIO = new IntersectionObserver((entries) => entries.forEach((en) => visible.set(en.target, en.isIntersecting)), { rootMargin: '25% 0px' });
+  const watch = (el) => { visible.set(el, true); visIO.observe(el); };
+  const buzz = (ms) => { try { navigator.vibrate?.(ms); } catch (_) {} };
+
   // Eine zentrale Animationsschleife für alles
   const tickers = new Set();
   let last = performance.now();
@@ -108,6 +114,14 @@
     return clamp((Math.atan2(dy, dx) * 180) / Math.PI, 0, 180);
   }
 
+  // Am Handy liegt der Finger meist unter dem Tacho. Darum ein Drehpunkt, der
+  // nach unten "nachgibt": links wischen = Nadel links, rechts = rechts.
+  function touchAngleTo(g, x, y) {
+    const p = g.pivotOnScreen();
+    const dx = x - p.x, dy = Math.max(p.y - y, 0) + innerWidth * 0.25;
+    return clamp((Math.atan2(dy, dx) * 180) / Math.PI, 0, 180);
+  }
+
   /* ---------------------------------------------------------
      1) Hero: Intro wie im Logo-Reel, danach folgt die Nadel
         dem Zeiger (am Handy: dem Scrollen)
@@ -125,7 +139,9 @@
     heroGauge.setDraw(draw);
     let shownValue = -1;
 
+    watch(hero);
     tickers.add((dt) => {
+      if (!visible.get(hero) && heroNeedle.resting) return;
       const th = heroNeedle.step(dt);
       heroGauge.setAngle(th);
       const pct = Math.round(clamp((180 - th) / 180, 0, 1) * 100);
@@ -162,12 +178,42 @@
       }, { passive: true });
       document.documentElement.addEventListener('pointerleave', () => { heroNeedle.target = NEEDLE_REST; });
     } else {
-      // Touch: Scrollen dreht den Motor hoch
+      // Touch: Scrollen dreht den Motor hoch, der Finger zieht die Nadel mit,
+      // und ein Tipp auf den Tacho gibt Gas.
+      let scrollTarget = NEEDLE_REST, fingerOn = false, revUntil = 0, revTimer;
+      const settle = () => { if (heroFollow && !fingerOn && performance.now() >= revUntil) heroNeedle.target = scrollTarget; };
       window.addEventListener('scroll', () => {
-        if (!heroFollow) return;
         const p = clamp(window.scrollY / (hero.offsetHeight * 0.6), 0, 1);
-        heroNeedle.target = lerp(NEEDLE_REST, 0, p);
+        scrollTarget = lerp(NEEDLE_REST, 0, p);
+        settle();
       }, { passive: true });
+
+      const follow = (e) => {
+        if (!heroFollow || performance.now() < revUntil) return;
+        const t = e.touches[0]; if (!t) return;
+        heroNeedle.target = touchAngleTo(heroGauge, t.clientX, t.clientY);
+      };
+      hero.addEventListener('touchstart', (e) => { fingerOn = true; follow(e); }, { passive: true });
+      hero.addEventListener('touchmove', follow, { passive: true });
+      const release = () => { fingerOn = false; clearTimeout(revTimer); revTimer = setTimeout(settle, 450); };
+      hero.addEventListener('touchend', release, { passive: true });
+      hero.addEventListener('touchcancel', release, { passive: true });
+
+      // Gas geben
+      const rev = (strength = 1) => {
+        heroNeedle.target = lerp(NEEDLE_REST, -6, strength);
+        heroNeedle.v -= 260 * strength; // kleiner Kick, damit es ruckt wie ein Motor
+        revUntil = performance.now() + 650 * strength;
+        heroHost.classList.add('is-revving');
+        buzz(strength === 1 ? [18, 40, 12] : 10);
+        clearTimeout(revTimer);
+        revTimer = setTimeout(() => { heroHost.classList.remove('is-revving'); settle(); }, 650 * strength);
+      };
+      heroHost.classList.add('is-tappable');
+      heroHost.addEventListener('click', () => { if (heroFollow) rev(1); });
+
+      // Einmal kurz anblasen, damit man merkt: der lebt
+      if (!reduced) setTimeout(() => { if (!fingerOn && window.scrollY < 40) rev(0.45); }, 2600);
     }
   }
 
@@ -216,9 +262,10 @@
     }
     select(0, { move: false });
 
-    tickers.add((dt) => g.setAngle(needle.step(dt)));
+    watch(dialHost);
+    tickers.add((dt) => { if (visible.get(dialHost) || !needle.resting) g.setAngle(needle.step(dt)); });
 
-    buttons.forEach((b, i) => b.addEventListener('click', () => select(i)));
+    buttons.forEach((b, i) => b.addEventListener('click', () => { if (i !== active) buzz(8); select(i); }));
     document.querySelector('.dial__stops').addEventListener('keydown', (e) => {
       const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
       if (!d) return;
@@ -229,15 +276,43 @@
     const onMove = (e) => {
       const th = angleTo(g, e.clientX, e.clientY);
       needle.target = th;
-      const n = nearest(th); if (n !== active) select(n, { move: false });
+      const n = nearest(th); if (n !== active) { select(n, { move: false }); buzz(8); }
+    };
+    // Maus: sofort ziehen. Finger: erst schauen, wohin er will. Senkrecht = Seite
+    // scrollt ganz normal, waagrecht = Nadel ziehen, kurz tippen = Stufe wählen.
+    let pending = false, sx = 0, sy = 0;
+    const startDrag = (e) => {
+      dragging = true; dialHost.classList.add('is-dragging');
+      try { dialHost.setPointerCapture(e.pointerId); } catch (_) {}
+      onMove(e);
+    };
+    const onGauge = (x, y) => {
+      const p = g.pivotOnScreen(), k = g.svg.getScreenCTM().a;
+      const r = Math.hypot(x - p.x, y - p.y) / k;
+      return r > 40 && r < 240 && y < p.y + 30 * k;
     };
     dialHost.addEventListener('pointerdown', (e) => {
-      dragging = true; dialHost.classList.add('is-dragging'); dialHost.setPointerCapture(e.pointerId); onMove(e);
+      if (e.pointerType === 'mouse') return startDrag(e);
+      pending = true; sx = e.clientX; sy = e.clientY;
     });
-    dialHost.addEventListener('pointermove', (e) => dragging && onMove(e));
+    dialHost.addEventListener('pointermove', (e) => {
+      if (dragging) return onMove(e);
+      if (!pending) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (Math.hypot(dx, dy) < 8) return;
+      pending = false;
+      if (Math.abs(dx) > Math.abs(dy)) startDrag(e);
+    });
     const end = () => { if (!dragging) return; dragging = false; dialHost.classList.remove('is-dragging'); select(active); };
-    dialHost.addEventListener('pointerup', end);
-    dialHost.addEventListener('pointercancel', end);
+    dialHost.addEventListener('pointerup', (e) => {
+      if (pending) {
+        pending = false;
+        if (onGauge(e.clientX, e.clientY)) { const n = nearest(angleTo(g, e.clientX, e.clientY)); select(n); buzz(10); }
+        return;
+      }
+      end();
+    });
+    dialHost.addEventListener('pointercancel', () => { pending = false; end(); });
 
     // Beim ersten Sichtkontakt einmal "hochdrehen" und zurück
     new IntersectionObserver((entries, io) => {
@@ -256,12 +331,14 @@
   if (sgBtn && P) {
     const g = buildGauge(sgBtn, { track: true, dim: false });
     const s = new Spring(0, { stiffness: 120, damping: 18 });
+    let sgShown = false;
     const progress = () => clamp(window.scrollY / (document.documentElement.scrollHeight - innerHeight || 1), 0, 1);
     tickers.add((dt) => {
       s.target = progress();
       const p = s.step(dt);
       g.setDraw(p); g.setAngle(180 - 180 * p);
-      sgBtn.classList.toggle('is-visible', window.scrollY > innerHeight * 0.6);
+      const show = window.scrollY > innerHeight * 0.6;
+      if (show !== sgShown) { sgShown = show; sgBtn.classList.toggle('is-visible', show); }
     });
     sgBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }));
   }
@@ -314,6 +391,21 @@
     });
   }
 
+  // Am Handy: das Licht im Button sitzt da, wo der Finger tippt
+  if (!finePointer) {
+    document.querySelectorAll('.btn').forEach((el) => {
+      let t;
+      el.addEventListener('pointerdown', (e) => {
+        const r = el.getBoundingClientRect();
+        el.style.setProperty('--glow-x', `${e.clientX - r.left}px`);
+        el.style.setProperty('--glow-y', `${e.clientY - r.top}px`);
+        clearTimeout(t); el.classList.add('is-pressed');
+      });
+      const off = () => { clearTimeout(t); t = setTimeout(() => el.classList.remove('is-pressed'), 220); };
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => el.addEventListener(ev, off));
+    });
+  }
+
   /* ---------------------------------------------------------
      6) Porträt: leichte 3D-Neigung mit Lichtreflex
   --------------------------------------------------------- */
@@ -330,6 +422,47 @@
       tickers.add((dt) => {
         const a = rx.step(dt), b = ry.step(dt);
         if (el.classList.contains('is-in')) el.style.transform = `perspective(1000px) rotateX(${a.toFixed(2)}deg) rotateY(${b.toFixed(2)}deg)`;
+      });
+    });
+  } else if (!reduced) {
+    // Handy: Das Bild kippt beim Scrollen leicht mit, der Lichtreflex wandert drüber.
+    // Mit dem Finger drauf: es folgt dem Finger wie am Laptop der Maus.
+    document.querySelectorAll('[data-tilt]').forEach((el) => {
+      const rx = new Spring(0, { stiffness: 90, damping: 14 }), ry = new Spring(0, { stiffness: 90, damping: 14 });
+      let finger = null;
+      const fingerAt = (e) => {
+        const t = e.touches[0]; if (!t) return;
+        const r = el.getBoundingClientRect();
+        finger = { x: clamp((t.clientX - r.left) / r.width, 0, 1), y: clamp((t.clientY - r.top) / r.height, 0, 1) };
+      };
+      el.addEventListener('touchstart', fingerAt, { passive: true });
+      el.addEventListener('touchmove', fingerAt, { passive: true });
+      el.addEventListener('touchend', () => { finger = null; }, { passive: true });
+      el.addEventListener('touchcancel', () => { finger = null; }, { passive: true });
+      watch(el);
+      el.style.setProperty('--lo', 1);
+      let readyAt = 0; // erst kippen, wenn das Einblenden fertig ist
+      tickers.add((dt, now) => {
+        if (!el.classList.contains('is-in')) return;
+        if (!readyAt) readyAt = now + 1150;
+        if (now < readyAt) return;
+        if (el.style.transition !== 'opacity .9s') el.style.transition = 'opacity .9s';
+        if (!visible.get(el) && rx.resting && ry.resting) return;
+        let lx, ly;
+        if (finger) {
+          ry.target = (finger.x - 0.5) * 12; rx.target = (0.5 - finger.y) * 10;
+          lx = finger.x; ly = finger.y;
+        } else {
+          const r = el.getBoundingClientRect();
+          const c = clamp((r.top + r.height / 2) / innerHeight, -0.5, 1.5); // 0 = oben, 1 = unten
+          const k = clamp((c - 0.5) * 2, -1, 1);
+          rx.target = k * 6; ry.target = k * -2.5;
+          lx = 0.35 + k * 0.25; ly = clamp(1 - c, 0, 1);
+        }
+        const a = rx.step(dt), b = ry.step(dt);
+        el.style.setProperty('--lx', `${(lx * 100).toFixed(1)}%`);
+        el.style.setProperty('--ly', `${(ly * 100).toFixed(1)}%`);
+        el.style.transform = `perspective(900px) rotateX(${a.toFixed(2)}deg) rotateY(${b.toFixed(2)}deg)`;
       });
     });
   }
@@ -366,7 +499,13 @@
     steps.prepend(dot);
     const items = [...steps.querySelectorAll('.step')];
     const pos = new Spring(0, { stiffness: 140, damping: 22 });
+    let tops = [];
+    const measure = () => { tops = items.map((it) => it.offsetTop); };
+    measure(); window.addEventListener('resize', measure); window.addEventListener('load', measure);
+    document.fonts?.ready.then(measure);
+    watch(steps);
     tickers.add((dt) => {
+      if (!visible.get(steps) && pos.resting) return;
       const r = steps.getBoundingClientRect();
       const len = r.height - 19; // Linie ohne Anfang/Ende
       // Die Linie füllt sich bis zur Bildschirmmitte
@@ -374,8 +513,8 @@
       const y = pos.step(dt);
       steps.style.setProperty('--fill', (y / len).toFixed(4));
       dot.style.setProperty('--dot-y', `${y.toFixed(1)}px`);
-      items.forEach((it) => {
-        const top = it.offsetTop; // Oberkante relativ zur Liste
+      items.forEach((it, i) => {
+        const top = tops[i]; // Oberkante relativ zur Liste
         it.style.setProperty('--o', clamp(0.2 + ((y - top + 30) / 60) * 0.8, 0.2, 1).toFixed(3));
       });
     });
@@ -430,7 +569,7 @@
     burger.setAttribute('aria-expanded', open);
     burger.setAttribute('aria-label', open ? 'Menü schließen' : 'Menü öffnen');
     document.body.classList.toggle('menu-open', open);
-    document.body.style.overflow = open ? 'hidden' : '';
+    document.documentElement.classList.toggle('menu-open', open);
     if (open) { drawer.hidden = false; requestAnimationFrame(() => drawer.classList.add('is-open')); }
     else { drawer.classList.remove('is-open'); setTimeout(() => { if (!drawer.classList.contains('is-open')) drawer.hidden = true; }, 700); }
   }

@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MAXED OUT. · Social Media von Maxima Jeitler</title>
 <meta name="description" content="Content Creation, Social Media Management und Strategie in Wien, Niederösterreich und der Steiermark. Für Unternehmen, die nicht wie alle anderen klingen wollen.">
 <meta name="theme-color" content="#2F3227">
@@ -27,7 +27,10 @@
 <header class="nav" data-nav>
   <div class="container nav__inner">
     <a href="#top" class="wordmark" aria-label="MAXED OUT. Startseite">
-      <img class="logo logo--nav" src="maxed-out-full.svg" alt="MAXED OUT.">
+      <picture>
+        <source media="(max-width: 860px)" srcset="maxed-out-mittel.svg">
+        <img class="logo logo--nav" src="maxed-out-full.svg" alt="MAXED OUT.">
+      </picture>
     </a>
 
     <nav class="nav__links" aria-label="Hauptnavigation">
@@ -74,7 +77,7 @@
         </div>
       </div>
     </div>
-    <p class="hero__hint" data-intro aria-hidden="true"><span class="hint-mouse">Beweg die Maus. Die Nadel folgt dir.</span><span class="hint-touch">Scroll los.</span></p>
+    <p class="hero__hint" data-intro aria-hidden="true"><span class="hint-mouse">Beweg die Maus. Die Nadel folgt dir.</span><span class="hint-touch">Tipp auf den Tacho. Oder scroll los.</span></p>
   </section>
 
   <!-- Laufband mit Haltung -->
@@ -174,6 +177,16 @@
   <section class="section section--olive contact" id="kontakt">
     <div class="glow glow--closing" aria-hidden="true"></div>
     <div class="container contact__inner">
+      <figure class="contact__photo" data-reveal data-tilt>
+        <div class="contact__card">
+          <img src="maxima-handy.jpg" alt="Maxima sitzt lächelnd auf einer Couch und schaut auf ihr Handy" width="800" height="1200" loading="lazy">
+        </div>
+        <div class="notif" aria-hidden="true">
+          <span class="notif__icon"><img src="favicon.svg" alt=""></span>
+          <span class="notif__body"><strong>Neue Anfrage</strong><span>Hi Maxima, wir hätten da ein Projekt …</span></span>
+          <span class="notif__time">jetzt</span>
+        </div>
+      </figure>
       <h2 class="display-1 contact__title" data-reveal>Schreib mir<span class="dot-accent">.</span></h2>
       <p class="body-lg contact__sub" data-reveal>Erzähl mir kurz, was du vorhast. Ein paar Sätze reichen.</p>
       <p class="contact__region" data-reveal>Ich bin vor allem in Wien, Niederösterreich und der Steiermark unterwegs. Auf Anfrage gern auch woanders.</p>
