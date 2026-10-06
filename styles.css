@@ -321,7 +321,7 @@ button { font: inherit; color: inherit; }
 .accent-text { color: var(--rust-bright); }
 .about__insta { display: inline-block; margin-top: 2rem; color: var(--sand-dim); text-decoration: none; font-size: .95rem; }
 .about__insta span { color: var(--sand); border-bottom: 1px solid var(--rust); padding-bottom: 1px; margin-left: .25rem; transition: color .3s; }
-@media (hover: hover) { .about__insta:hover span { color: var(--rust-bright); } }
+
 @media (max-width: 860px) {
   .about__grid { grid-template-columns: 1fr; }
   .about__portrait { max-width: 420px; width: 100%; margin: 0 auto; }
@@ -461,6 +461,7 @@ button { font: inherit; color: inherit; }
 .footer__links { display: flex; gap: 1.5rem; font-size: .9rem; }
 .footer__links a { color: var(--sand-dim); text-decoration: none; transition: color .3s; }
 .footer__links a:hover { color: var(--sand); }
+.footer__soon { color: var(--sand-dim); opacity: .6; }
 @media (max-width: 560px) {
   .contact__actions { display: grid; grid-template-columns: 1fr; width: 100%; max-width: 22rem; }
   .contact__actions .btn { width: 100%; }
