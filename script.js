@@ -576,6 +576,49 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && burger?.getAttribute('aria-expanded') === 'true') setMenu(false); });
 
   /* ---------------------------------------------------------
+     11b) Galerie: Vorhang zieht weg, sobald ein Foto ins Bild
+          kommt (mehrere gleichzeitig nacheinander), dazu
+          leichte Tiefe beim Scrollen
+  --------------------------------------------------------- */
+  const gallery = document.querySelector('[data-gallery]');
+  if (gallery) {
+    const gTiles = [...gallery.querySelectorAll('[data-gallery-tile]')];
+    if (reduced || !('IntersectionObserver' in window)) {
+      gTiles.forEach((t) => t.classList.add('is-in'));
+    } else {
+      const gio = new IntersectionObserver((entries) => {
+        entries.filter((en) => en.isIntersecting)
+          .sort((a, b) => gTiles.indexOf(a.target) - gTiles.indexOf(b.target))
+          .forEach((en, n) => {
+            const tile = en.target; gio.unobserve(tile);
+            tile.style.setProperty('--d', `${n * 0.12}s`);
+            // Vorhang erst wegziehen, wenn das Foto geladen ist
+            const img = tile.querySelector('img');
+            const show = () => tile.classList.add('is-in');
+            if (img.complete && img.naturalWidth) show();
+            else { img.loading = 'eager'; img.decode().then(show, show); }
+          });
+      }, { threshold: 0.3, rootMargin: '0px 0px -10% 0px' });
+      gTiles.forEach((t) => gio.observe(t));
+
+      const gImgs = gTiles.map((t) => t.querySelector('img'));
+      let gTick = false;
+      const drift = () => {
+        gTick = false;
+        const vh = window.innerHeight;
+        gTiles.forEach((t, i) => {
+          const r = t.getBoundingClientRect();
+          if (r.bottom < -100 || r.top > vh + 100) return;
+          const off = clamp((r.top + r.height / 2 - vh / 2) / vh, -1, 1);
+          gImgs[i].style.translate = `0 ${(off * -0.05 * r.height).toFixed(1)}px`;
+        });
+      };
+      window.addEventListener('scroll', () => { if (!gTick) { gTick = true; requestAnimationFrame(drift); } }, { passive: true });
+      drift();
+    }
+  }
+
+  /* ---------------------------------------------------------
      12) E-Mail-Adresse kopieren
   --------------------------------------------------------- */
   document.querySelectorAll('[data-copy]').forEach((btn) => {

@@ -529,3 +529,33 @@ button { font: inherit; color: inherit; }
   .contact__photo.notif-in .notif { animation: notif-fade .8s ease both !important; }
 }
 @keyframes notif-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------------------------------------------------------
+   Galerie: Raster mit Vorhang
+--------------------------------------------------------- */
+.gallery__head { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 4rem; align-items: end; margin-bottom: clamp(2.5rem, 5vw, 4rem); }
+.gallery__intro { margin: 0; color: var(--sand-dim); max-width: 30rem; text-wrap: balance; }
+.gallery__grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: clamp(130px, 15vw, 230px); gap: clamp(6px, 1vw, 14px);
+  grid-template-areas: "a a b c" "a a b d" "e f g g" "h f i j";
+}
+.gallery__tile { position: relative; margin: 0; overflow: hidden; border-radius: calc(var(--radius) * .6); background: var(--olive); }
+.gallery__tile--a { grid-area: a; } .gallery__tile--b { grid-area: b; } .gallery__tile--c { grid-area: c; } .gallery__tile--d { grid-area: d; } .gallery__tile--e { grid-area: e; }
+.gallery__tile--f { grid-area: f; } .gallery__tile--g { grid-area: g; } .gallery__tile--h { grid-area: h; } .gallery__tile--i { grid-area: i; } .gallery__tile--j { grid-area: j; }
+.gallery__tile img { position: absolute; left: 0; top: -6%; width: 100%; height: 112%; max-width: none; object-fit: cover; }
+.gallery__tile::after { content: ""; position: absolute; inset: 0; z-index: 1; background: var(--rust); transform: scaleY(0); transform-origin: top; pointer-events: none; }
+.gallery__tile:nth-child(even)::after { background: var(--olive-soft); }
+.js .gallery__tile::after { transform: scaleY(1); }
+.js .gallery__tile img { transform: scale(1.15); }
+.js .gallery__tile.is-in::after { transform: scaleY(0); transition: transform 1s var(--ease-out) calc(var(--d, 0s) + .08s); }
+.js .gallery__tile.is-in img { transform: none; transition: transform 1.4s var(--ease-out) var(--d, 0s); }
+@media (max-width: 860px) {
+  .gallery__head { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .gallery__grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: clamp(140px, 42vw, 260px); grid-template-areas: "a a" "a a" "b c" "b d" "g g" "e f" "h f" "i j"; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .gallery__tile::after { display: none; }
+  .js .gallery__tile img { transform: none; }
+}
